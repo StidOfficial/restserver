@@ -1,8 +1,8 @@
-= restserver
+# restserver
 
 Lightweight REST server
 
-== Development
+## Development
 
 ```
 python3 setup.py bdist_wheel
