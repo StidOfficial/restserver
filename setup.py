@@ -2,7 +2,8 @@ from setuptools import find_packages, setup
 
 setup(
   name="restserver",
-  packages=find_packages(include=["restserver"]),
+  package_dir="restserver",
+  packages=find_packages(where="restserver"),
   version="0.0.1",
   description="Rest server python library",
   author="StidOfficial",
