@@ -1,14 +1,14 @@
 from setuptools import find_packages, setup
 
+with open("README.md", "r") as readme:
+  long_description = readme.read()
+
 setup(
   name="restserver",
-  package_dir={"": "restserver"},
-  packages=find_packages(where="restserver"),
   version="0.0.1",
   description="Rest server python library",
-  author="StidOfficial",
-  license="",
-  install_requires=[],
-  setup_requires=[],
-  test_suite="tests"
+  long_description=long_description,
+  long_description_content_type="text/markdown",
+  url="https://github.com/StidOfficial/restserver",
+  packages=["restserver"],
 )
