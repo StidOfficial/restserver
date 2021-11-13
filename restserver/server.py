@@ -1,10 +1,12 @@
 from http.server import HTTPServer
 from restserver.controller import BaseController
+from restserver.handler import RESTHTTPRequestHandler
 
 import array
 
 class RESTServer(HTTPServer):
-  def __init__(self, server_address, RequestHandlerClass, bind_and_activate=True):
+  def __init__(self, server_address: str, RequestHandlerClass: RESTHTTPRequestHandler,
+                bind_and_activate: bool = True) -> None:
     super().__init__(server_address, RequestHandlerClass, bind_and_activate)
 
     self._controllers = []
