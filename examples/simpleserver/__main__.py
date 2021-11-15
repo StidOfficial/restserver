@@ -5,5 +5,10 @@ from controllers.test import TestController
 
 with RESTServer(("", 8080), RESTHTTPRequestHandler) as httpd:
   print("Listen on :", httpd.server_address)
+
   httpd.add_controller(TestController)
-  httpd.serve_forever()
+
+  try:
+    httpd.serve_forever()
+  except KeyboardInterrupt:
+    pass
