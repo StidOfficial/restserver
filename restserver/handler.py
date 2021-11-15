@@ -88,7 +88,7 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
         return
 
       try:
-        self.do_response(data, content_type)
+        self.do_response(data, content_type = content_type)
       except Exception as e:
         content = None
         content_type = None
