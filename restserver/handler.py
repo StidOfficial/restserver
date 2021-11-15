@@ -29,6 +29,10 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     if data:
       self.wfile.write(data)
 
+  def do_bad_request(self, content = None, content_type = None) -> None:
+    self.do_response(status=HTTPStatus.BAD_REQUEST, content=content,
+                      content_type=content_type)
+
   def do_not_found(self, content = None, content_type = None) -> None:
     self.do_response(status=HTTPStatus.NOT_FOUND, content=content,
                       content_type=content_type)
