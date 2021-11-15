@@ -16,7 +16,11 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     if content:
       if content_type == "application/json":
         data = json.dumps(content).encode()
-        headers["Content-Length"] = len(data)
+      else:
+        data = content
+
+    if data:
+      headers["Content-Length"] = len(data)
 
     if content_type:
       headers["Content-Type"] = content_type
