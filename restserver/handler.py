@@ -81,14 +81,14 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     print(controller, func)
     if controller and func:
       Class = controller(self)
-      data = func(Class)
+      data, content_type = func(Class)
 
       # Check if have already send a response
       if hasattr(self, "response"):
         return
 
       try:
-        self.do_response(data)
+        self.do_response(data, content_type)
       except Exception as e:
         content = None
         content_type = None
