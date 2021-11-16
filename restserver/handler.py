@@ -16,9 +16,9 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     if content:
       if content_type == "application/json":
         data = json.dumps(content).encode()
-      elif content is str:
+      elif isinstance(content, str):
         data = content.encode()
-      elif content is bytes:
+      elif isinstance(content, bytes):
         data = content
       else:
         raise Exception(f"Unsupported content format ({type(content)})")
