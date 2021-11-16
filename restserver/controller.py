@@ -9,3 +9,6 @@ class BaseController:
 
   def not_found(self):
     self._handler.do_not_found()
+
+  def internal_server_error(self):
+    self._handler.do_internal_server_error()
