@@ -4,6 +4,9 @@ class BaseController:
   def __init__(self, handler: RESTHTTPRequestHandler):
     self._handler = handler
 
+  def ok(self, content=None, content_type=None):
+    self._handler.do_ok(content, content_type)
+
   def bad_request(self, content=None, content_type=None):
     self._handler.do_bad_request(content, content_type)
 
