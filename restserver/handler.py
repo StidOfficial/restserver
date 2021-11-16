@@ -101,6 +101,8 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
           }
           content_type = "application/json"
 
+          traceback.print_exception(type(e), e, e.__traceback__)
+
         self.do_internal_server_error(content, content_type)
     else:
       self.do_not_found()
