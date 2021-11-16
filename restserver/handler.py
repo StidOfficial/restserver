@@ -16,8 +16,12 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     if content:
       if content_type == "application/json":
         data = json.dumps(content).encode()
-      else:
+      elif content is str:
+        data = content.encode()
+      elif content is bytes:
         data = content
+      else:
+        raise Exception(f"Unsupported content format ({type(content)})")
 
     if data:
       headers["Content-Length"] = len(data)
