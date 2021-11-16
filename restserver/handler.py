@@ -1,35 +1,26 @@
 from http.server import BaseHTTPRequestHandler
 from http import HTTPStatus
 
+from restserver.response import Response
 from restserver.utils import Utils
 
-import json
 import traceback
 
 class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
-  def do_response(self, content = None, headers: dict = {}, status: int = HTTPStatus.OK,
-                  content_type: str = "application/json") -> None:
-    self.response = True
-    
-    data = None
+  def do_response(self, response: Response) -> None:
+    self.has_responded = True
 
-    if content:
-      if content_type == "application/json":
-        data = json.dumps(content).encode()
-      elif isinstance(content, str):
-        data = content.encode()
-      elif isinstance(content, bytes):
-        data = content
-      else:
-        raise Exception(f"Unsupported content format ({type(content)})")
+    headers = response.get_headers()
 
+    data = response.get_data()
     if data:
       headers["Content-Length"] = len(data)
 
+    content_type = response.get_content_type()
     if content_type:
       headers["Content-Type"] = content_type
 
-    self.send_response(status)
+    self.send_response(response.get_status())
     for key, value in headers.items():
       self.send_header(key, value)
     self.end_headers()
@@ -38,16 +29,16 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
       self.wfile.write(data)
 
   def do_bad_request(self, content = None, content_type = None) -> None:
-    self.do_response(status=HTTPStatus.BAD_REQUEST, content=content,
-                      content_type=content_type)
+    self.do_response(Response(content, status=HTTPStatus.BAD_REQUEST,
+                      content_type=content_type))
 
   def do_not_found(self, content = None, content_type = None) -> None:
-    self.do_response(status=HTTPStatus.NOT_FOUND, content=content,
-                      content_type=content_type)
+    self.do_response(Response(content, status=HTTPStatus.NOT_FOUND,
+                      content_type=content_type))
 
   def do_internal_server_error(self, content = None, content_type = None) -> None:
-    self.do_response(status=HTTPStatus.INTERNAL_SERVER_ERROR, content=content,
-                      content_type=content_type)
+    self.do_response(Response(content, status=HTTPStatus.INTERNAL_SERVER_ERROR,
+                      content_type=content_type))
 
   def get_routes(self):
     from restserver.controller import BaseController
@@ -84,14 +75,17 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     controller, func = self.find_route(method)
     if controller and func:
       Class = controller(self)
-      data, content_type = func(Class)
+      response = func(Class)
 
       # Check if have already send a response
-      if hasattr(self, "response"):
+      if hasattr(self, "has_responded"):
         return
 
       try:
-        self.do_response(data, content_type = content_type)
+        if isinstance(response, Response):
+          self.do_response(response)
+        else:
+          self.do_response(Response(response))
       except Exception as e:
         content = None
         content_type = None
