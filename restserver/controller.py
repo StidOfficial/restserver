@@ -4,11 +4,11 @@ class BaseController:
   def __init__(self, handler: RESTHTTPRequestHandler):
     self._handler = handler
 
-  def bad_request(self):
-    self._handler.do_bad_request()
+  def bad_request(self, content=None, content_type=None):
+    self._handler.do_bad_request(content, content_type)
 
-  def not_found(self):
-    self._handler.do_not_found()
+  def not_found(self, content=None, content_type=None):
+    self._handler.do_not_found(content, content_type)
 
-  def internal_server_error(self):
-    self._handler.do_internal_server_error()
+  def internal_server_error(self, content=None, content_type=None):
+    self._handler.do_internal_server_error(content, content_type)
