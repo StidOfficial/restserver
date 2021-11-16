@@ -78,7 +78,6 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
 
   def do_request(self, method: str):
     controller, func = self.find_route(method)
-    print(controller, func)
     if controller and func:
       Class = controller(self)
       data, content_type = func(Class)
