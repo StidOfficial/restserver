@@ -61,7 +61,9 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
           route_attribute = getattr(controller_class, route)
 
           if isinstance(route_attribute, Route):
-            route_template = controller.get_template() + "/" + route_attribute.get_template()
+            route_template = controller.get_template()
+            if route_attribute.get_template():
+              route_template += "/" + route_attribute.get_template()
             routes.append(Route(method=route_attribute.get_method(),
                                 template=route_template,
                                 function=route_attribute.get_function(),
