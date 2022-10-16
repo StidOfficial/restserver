@@ -3,8 +3,13 @@ from http import HTTPStatus
 
 from restserver.response import Response
 from restserver.utils import Utils
+from restserver.exceptions import InvalidContentTypeError
 
 import traceback
+import re
+from typing import Callable, Type
+from inspect import signature
+import json
 
 class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
   def do_response(self, response: Response) -> None:
@@ -32,12 +37,24 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     self.do_response(Response(content, status=HTTPStatus.OK,
                       content_type=content_type))
 
+  def do_created(self, content = None, content_type = None) -> None:
+    self.do_response(Response(content, status=HTTPStatus.CREATED,
+                      content_type=content_type))
+
+  def do_no_content(self, content = None, content_type = None) -> None:
+    self.do_response(Response(content, status=HTTPStatus.NO_CONTENT,
+                      content_type=content_type))
+
   def do_bad_request(self, content = None, content_type = None) -> None:
     self.do_response(Response(content, status=HTTPStatus.BAD_REQUEST,
                       content_type=content_type))
 
   def do_not_found(self, content = None, content_type = None) -> None:
     self.do_response(Response(content, status=HTTPStatus.NOT_FOUND,
+                      content_type=content_type))
+
+  def do_unsupported_media_type(self, content = None, content_type = None) -> None:
+    self.do_response(Response(content, status=HTTPStatus.UNSUPPORTED_MEDIA_TYPE,
                       content_type=content_type))
 
   def do_internal_server_error(self, content = None, content_type = None) -> None:
@@ -64,6 +81,7 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
             route_template = controller.get_template()
             if route_attribute.get_template():
               route_template += "/" + route_attribute.get_template()
+
             routes.append(Route(method=route_attribute.get_method(),
                                 template=route_template,
                                 function=route_attribute.get_function(),
@@ -72,16 +90,73 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
 
   def find_route(self, method: str):
     for route in self.get_routes():
-      if method == route.get_method() and self.path == route.get_template():
-        return route.get_controller(), route.get_function()
+      if method != route.get_method():
+        continue
 
-    return None, None
+      route_template = route.get_template()
+
+      route_param_names = re.findall(r":([a-zA-Z]+)", route_template)
+
+      for route_param_name in route_param_names:
+        route_template = route_template.replace(f":{route_param_name}", rf"(?P<{route_param_name}>[a-zA-Z0-9_-]+)")
+
+      route_template = f"^{route_template}$"
+
+      result = re.match(route_template, self.path)
+      if result is None:
+        continue
+
+      route_params = result.groupdict()
+
+      return route.get_controller(), route.get_function(), route_params
+
+    return None, None, None
+
+  def get_route_arguments(self, controller_class: Type, params: dict, func: Callable):
+    args = {}
+
+    for k, v in signature(func).parameters.items():
+      if k == "self":
+        args[k] = controller_class
+      elif k in params:
+        args[k] = params[k]
+      else:
+        args[k] = None
+
+    return args
+
+  def get_content(self):
+    if "Content-Length" not in self.headers or "Content-Type" not in self.headers:
+      return None
+
+    content_length = int(self.headers["Content-Length"])
+    content_type = self.headers["Content-Type"]
+
+    if content_length <= 0:
+      return None
+
+    if content_type == "application/json":
+      return json.loads(self.rfile.read(content_length))
+    else:
+      raise InvalidContentTypeError(f"Unsupported type {content_type}")
 
   def do_request(self, method: str):
-    controller, func = self.find_route(method)
+    controller, func, params = self.find_route(method)
     if controller and func:
-      Class = controller(self)
-      response = func(Class)
+      controller_class = controller(self)
+
+      args = self.get_route_arguments(controller_class, params, func)
+
+      try:
+        for k, v in args.items():
+          if v is None:
+            args[k] = self.get_content()
+            break
+      except InvalidContentTypeError as e:
+        self.do_unsupported_media_type()
+        return
+
+      response = func(*args.values())
 
       # Check if have already send a response
       if hasattr(self, "has_responded"):

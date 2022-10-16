@@ -1,0 +1,2 @@
+class InvalidContentTypeError(ValueError):
+    pass
