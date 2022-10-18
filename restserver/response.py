@@ -26,7 +26,7 @@ class Response:
         return None
 
       if self._content_type == "application/json":
-        return json.dumps(self._content).encode()
+        return json.dumps(self._content, default=str).encode()
 
       if isinstance(self._content, str):
         return self._content.encode()
