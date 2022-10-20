@@ -25,6 +25,8 @@ class RESTHTTPRequestHandler(BaseHTTPRequestHandler):
     if content_type:
       headers["Content-Type"] = content_type
 
+    headers["Access-Control-Allow-Origin"] = "*"
+
     self.send_response(response.get_status())
     for key, value in headers.items():
       self.send_header(key, value)
